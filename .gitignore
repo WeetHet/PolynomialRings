@@ -1,5 +1,6 @@
 *
-!*.scala
+!src
+!src/*.scala
 !.scalafmt.conf
 
 !flake.nix

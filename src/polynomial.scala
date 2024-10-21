@@ -18,6 +18,17 @@ class Polynomial[C: CommutativeRing, V](
       case "" => "0"
       case s  => s
 
+  /** Evaluates the polynomial with given variable mappings.
+    *
+    * @tparam R
+    *   The type of the ring in which the polynomial is evaluated
+    * @param mapping
+    *   A function that maps variables to values in R
+    * @param convert
+    *   An implicit conversion from C to R
+    * @return
+    *   The result of evaluating the polynomial in R
+    */
   def evaluate[R: Ring](
       mapping: V => R
   )(using convert: Conversion[C, R]): R =
@@ -30,11 +41,33 @@ class Polynomial[C: CommutativeRing, V](
       .foldLeft(Ring[R].zero)(_ + _)
 
 object Polynomial:
+  /** Creates a constant polynomial with the given value.
+    *
+    * @tparam C
+    *   The type of the coefficient, must be an element of a commutative ring
+    * @tparam V
+    *   The type of the variable
+    * @param c
+    *   The constant value
+    * @return
+    *   A Polynomial[C, V] representing the constant c
+    */
   def const[C, V](c: C)(using r: CommutativeRing[C]): Polynomial[C, V] =
     c match
       case r.zero => Polynomial(Map.empty)
       case c      => Polynomial(Map(List.empty -> c))
 
+  /** Creates a polynomial representing a single variable with coefficient 1.
+    *
+    * @tparam C
+    *   The type of the coefficient, must be an element of a commutative ring
+    * @tparam V
+    *   The type of the variable
+    * @param name
+    *   The name or identifier of the variable
+    * @return
+    *   A Polynomial[C, V] representing the variable with coefficient 1
+    */
   def variable[C, V](name: V)(using r: CommutativeRing[C]): Polynomial[C, V] =
     Polynomial(Map(List((name, 1)) -> r.unit))
 

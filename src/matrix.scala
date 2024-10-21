@@ -1,7 +1,16 @@
 import scala.reflect.ClassTag
 
+/** Represents a square matrix of size S x S with elements of type T.
+  *
+  * @tparam T
+  *   The type of elements in the matrix
+  * @tparam S
+  *   A singleton integer type representing the size of the matrix
+  * @param repr
+  *   The underlying 2D array representation of the matrix
+  */
 class Matrix[T, S <: Int](
-    repr: Array[Array[T]]
+    private val repr: Array[Array[T]]
 )(using s: ValueOf[S]):
   val size: Int = s.value
   assert(repr.size == size && repr.forall(_.size == size))
@@ -29,11 +38,6 @@ class Matrix[T, S <: Int](
       )
       .mkString("\n")
 
-object Matrix:
-  def fromList[T: ClassTag, S <: Int](list: List[List[T]])(using
-      s: ValueOf[S]
-  ): Matrix[T, S] = Matrix(list.map(_.toArray).toArray)
-
 given matrixRing[T: ClassTag, S <: Int](using
     s: ValueOf[S],
     ring: Ring[T]
@@ -49,12 +53,30 @@ given matrixRing[T: ClassTag, S <: Int](using
   )
 
   extension (left: Matrix[T, S])
+    /** Adds two matrices element-wise.
+      *
+      * @param left
+      *   The first matrix to add
+      * @param right
+      *   The second matrix to add
+      * @return
+      *   A new matrix resulting from the element-wise addition
+      */
     def +(right: Matrix[T, S]): Matrix[T, S] = Matrix(
       Array.tabulate(s.value, s.value)((i, j) =>
         ring.+(left(i, j))(right(i, j))
       )
     )
 
+    /** Multiplies two matrices.
+      *
+      * @param left
+      *   The left matrix to multiply
+      * @param right
+      *   The right matrix to multiply
+      * @return
+      *   A new matrix resulting from the multiplication of left and right
+      */
     def *(right: Matrix[T, S]): Matrix[T, S] = Matrix(
       Array.tabulate(s.value, s.value)((i, j) =>
         (0 until s.value)
@@ -64,6 +86,13 @@ given matrixRing[T: ClassTag, S <: Int](using
     )
 
   extension (p: Matrix[T, S])
+    /** Negates the matrix, returning a new matrix with all elements negated.
+      *
+      * @param p
+      *   The matrix to negate
+      * @return
+      *   A new matrix with all elements negated
+      */
     def unary_- : Matrix[T, S] = Matrix(
       Array.tabulate(s.value, s.value)((i, j) => -p(i, j))
     )

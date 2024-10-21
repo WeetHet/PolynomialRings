@@ -1,0 +1,7 @@
+[
+  {
+    "label": "Scala run",
+    "command": "scala-cli .",
+    "tags": ["scala-main"]
+  }
+]

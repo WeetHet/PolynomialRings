@@ -1,0 +1,12 @@
+*
+!*.scala
+!.scalafmt.conf
+
+!flake.nix
+!flake.lock
+!.envrc
+
+!.gitignore
+
+!.zed
+!.zed/*.json

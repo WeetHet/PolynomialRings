@@ -1,7 +1,9 @@
 {
-  "languages": {
-    "Scala": {
-      "tab_size": 2
+  "lsp": {
+    "metals": {
+      "settings": {
+        "scalafmtConfigPath": ".scalafmt.conf"
+      }
     }
   }
 }

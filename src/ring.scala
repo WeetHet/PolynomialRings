@@ -1,3 +1,5 @@
+package polynomials
+
 /** A trait representing a mathematical ring structure.
   *
   * @tparam T

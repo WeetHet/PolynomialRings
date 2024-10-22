@@ -1,3 +1,5 @@
+package polynomials
+
 import scala.language.implicitConversions
 
 @main def main(): Unit =
@@ -10,6 +12,13 @@ import scala.language.implicitConversions
       Array(1, 2, 3),
       Array(4, 5, 6),
       Array(7, 8, 9)
+    )
+  )
+
+  val mat2 = Matrix[Int, 2](
+    Array(
+      Array(1, 2),
+      Array(4, 5)
     )
   )
 

@@ -1,3 +1,5 @@
+package polynomials
+
 import scala.annotation.targetName
 import scala.collection.immutable.HashMap
 
@@ -17,6 +19,11 @@ class Polynomial[C: CommutativeRing, V](
     repr.view.map(monomialToString).mkString(" + ") match
       case "" => "0"
       case s  => s
+
+  override def equals(that: Any): Boolean = that match
+    case other: Polynomial[_, _] if other.getClass == this.getClass =>
+      this.repr == other.repr
+    case _ => false
 
   /** Evaluates the polynomial with given variable mappings.
     *
@@ -71,7 +78,7 @@ object Polynomial:
   def variable[C, V](name: V)(using r: CommutativeRing[C]): Polynomial[C, V] =
     Polynomial(Map(List((name, 1)) -> r.unit))
 
-given [C: CommutativeRing, V]: Ring[Polynomial[C, V]] with
+given polynomialRing[C: CommutativeRing, V]: Ring[Polynomial[C, V]] with
   lazy val zero = Polynomial.const(CommutativeRing[C].zero)
   lazy val unit = Polynomial.const(CommutativeRing[C].unit)
   extension (left: Polynomial[C, V])

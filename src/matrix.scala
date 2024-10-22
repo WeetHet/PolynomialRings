@@ -1,3 +1,5 @@
+package polynomials
+
 import scala.reflect.ClassTag
 
 /** Represents a square matrix of size S x S with elements of type T.
@@ -9,13 +11,20 @@ import scala.reflect.ClassTag
   * @param repr
   *   The underlying 2D array representation of the matrix
   */
-class Matrix[T, S <: Int](
+class Matrix[T: ClassTag, S <: Int](
     private val repr: Array[Array[T]]
 )(using s: ValueOf[S]):
   val size: Int = s.value
   assert(repr.size == size && repr.forall(_.size == size))
 
   def apply(i: Int, j: Int): T = repr(i)(j)
+
+  override def equals(that: Any): Boolean = that match
+    case other: Matrix[_, _] if other.getClass == this.getClass =>
+      size == other.size && repr.view
+        .zip(other.repr.view)
+        .forall(_.zip(_).forall(_ == _))
+    case _ => false
 
   override def toString(): String =
     val maxSize = (0 until size)

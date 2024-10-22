@@ -3,5 +3,9 @@
     "label": "Scala run",
     "command": "scala-cli run .",
     "tags": ["scala-main"]
+  },
+  {
+    "label": "Scala test",
+    "command": "scala-cli test . -language:implicitConversions"
   }
 ]

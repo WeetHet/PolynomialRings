@@ -3,6 +3,9 @@
 !src/*.scala
 !.scalafmt.conf
 
+!test
+!test/*.scala
+
 !flake.nix
 !flake.lock
 !.envrc

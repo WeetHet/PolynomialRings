@@ -2,14 +2,21 @@ package polynomials
 
 import scala.annotation.targetName
 import scala.collection.immutable.HashMap
+import scala.reflect.{ClassTag, Typeable}
+import izumi.reflect.Tag
 
-class Polynomial[C: CommutativeRing, V](
+type Eq[-T] = CanEqual[T, T]
+
+class Polynomial[C: CommutativeRing: Eq: Tag, V: Eq: Tag](
     val repr: Map[List[(V, Int)], C]
-)(using r: CommutativeRing[C]):
+):
+  private given ring: CommutativeRing[C] = summon
+
+  val tags: List[Tag[?]] = List(summon[Tag[C]], summon[Tag[V]])
   private def monomialToString(monomial: List[(V, Int)], coeff: C): String =
     val coeffString = coeff match
-      case r.unit => ""
-      case c      => c.toString()
+      case ring.unit => ""
+      case c         => c.toString()
     coeffString ++ monomial.view.map {
       case (name, 1)   => name.toString()
       case (name, exp) => f"${name}^${exp}"
@@ -20,8 +27,16 @@ class Polynomial[C: CommutativeRing, V](
       case "" => "0"
       case s  => s
 
+  given tt: Typeable[Polynomial[C, V]] with
+    def unapply(obj: Any): Option[obj.type & Polynomial[C, V]] =
+      given CanEqual[Tag[?], Tag[?]] = CanEqual.derived
+      obj match
+        case poly: Polynomial[_, _] if poly.tags == tags =>
+          Some(poly.asInstanceOf[obj.type & Polynomial[C, V]])
+        case _ => None
+
   override def equals(that: Any): Boolean = that match
-    case other: Polynomial[_, _] if other.getClass == this.getClass =>
+    case tt(other: Polynomial[C, V]) =>
       this.repr == other.repr
     case _ => false
 
@@ -47,6 +62,9 @@ class Polynomial[C: CommutativeRing, V](
       )
       .foldLeft(Ring[R].zero)(_ + _)
 
+given [C: CommutativeRing: Eq: Tag, V: Eq: Tag]
+    : CanEqual[Polynomial[C, V], Polynomial[C, V]] = CanEqual.derived
+
 object Polynomial:
   /** Creates a constant polynomial with the given value.
     *
@@ -59,7 +77,9 @@ object Polynomial:
     * @return
     *   A Polynomial[C, V] representing the constant c
     */
-  def const[C, V](c: C)(using r: CommutativeRing[C]): Polynomial[C, V] =
+  def const[C: Eq: Tag, V: Eq: Tag](c: C)(using
+      r: CommutativeRing[C]
+  ): Polynomial[C, V] =
     c match
       case r.zero => Polynomial(Map.empty)
       case c      => Polynomial(Map(List.empty -> c))
@@ -75,10 +95,13 @@ object Polynomial:
     * @return
     *   A Polynomial[C, V] representing the variable with coefficient 1
     */
-  def variable[C, V](name: V)(using r: CommutativeRing[C]): Polynomial[C, V] =
+  def variable[C: Eq: Tag, V: Eq: Tag](name: V)(using
+      r: CommutativeRing[C]
+  ): Polynomial[C, V] =
     Polynomial(Map(List((name, 1)) -> r.unit))
 
-given polynomialRing[C: CommutativeRing, V]: Ring[Polynomial[C, V]] with
+given polynomialRing[C: CommutativeRing: Eq: Tag, V: Eq: Tag]
+    : Ring[Polynomial[C, V]] with
   lazy val zero = Polynomial.const(CommutativeRing[C].zero)
   lazy val unit = Polynomial.const(CommutativeRing[C].unit)
   extension (left: Polynomial[C, V])
@@ -121,13 +144,14 @@ given polynomialRing[C: CommutativeRing, V]: Ring[Polynomial[C, V]] with
     def unary_- : Polynomial[C, V] =
       p * Polynomial.const(-CommutativeRing[C].unit)
 
-given [C: CommutativeRing, V]: Conversion[C, Polynomial[C, V]] =
+given [C: CommutativeRing: Eq: Tag, V: Eq: Tag]
+    : Conversion[C, Polynomial[C, V]] =
   Polynomial.const(_)
 
 given [T]: Conversion[T, T] = x => x
 
-extension [C: CommutativeRing, V](left: C)(using
-    convert: Conversion[C, Polynomial[C, V]]
-)
+extension [C: CommutativeRing: Eq: Tag, V: Eq: Tag](
+    left: C
+)(using convert: Conversion[C, Polynomial[C, V]])
   def +(right: Polynomial[C, V]): Polynomial[C, V] = convert(left) + right
   def *(right: Polynomial[C, V]): Polynomial[C, V] = convert(left) * right

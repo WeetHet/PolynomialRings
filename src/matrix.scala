@@ -1,6 +1,7 @@
 package polynomials
 
-import scala.reflect.ClassTag
+import scala.reflect.{ClassTag, Typeable}
+import izumi.reflect.Tag
 
 /** Represents a square matrix of size S x S with elements of type T.
   *
@@ -11,20 +12,30 @@ import scala.reflect.ClassTag
   * @param repr
   *   The underlying 2D array representation of the matrix
   */
-class Matrix[T: ClassTag, S <: Int](
+class Matrix[T: Eq: ClassTag: Tag, S <: Int](
     private val repr: Array[Array[T]]
 )(using s: ValueOf[S]):
+  val tagT = summon[Tag[T]]
   val size: Int = s.value
   assert(repr.size == size && repr.forall(_.size == size))
 
-  def apply(i: Int, j: Int): T = repr(i)(j)
+  given tt: Typeable[Matrix[T, S]] with
+    def unapply(obj: Any): Option[obj.type & Matrix[T, S]] =
+      given CanEqual[Tag[?], Tag[?]] = CanEqual.derived
+      obj match
+        case mat: Matrix[_, _]
+            if mat.tagT == summon[Tag[T]] && mat.size == size =>
+          Some(mat.asInstanceOf[obj.type & Matrix[T, S]])
+        case _ => None
 
   override def equals(that: Any): Boolean = that match
-    case other: Matrix[_, _] if other.getClass == this.getClass =>
+    case tt(other: Matrix[T, S]) =>
       size == other.size && repr.view
         .zip(other.repr.view)
         .forall(_.zip(_).forall(_ == _))
     case _ => false
+
+  def apply(i: Int, j: Int): T = repr(i)(j)
 
   override def toString(): String =
     val maxSize = (0 until size)
@@ -47,7 +58,10 @@ class Matrix[T: ClassTag, S <: Int](
       )
       .mkString("\n")
 
-given matrixRing[T: ClassTag, S <: Int](using
+given [T: Eq: ClassTag: Tag, S <: Int]: CanEqual[Matrix[T, S], Matrix[T, S]] =
+  CanEqual.derived
+
+given matrixRing[T: Eq: ClassTag: Tag, S <: Int](using
     s: ValueOf[S],
     ring: Ring[T]
 ): Ring[Matrix[T, S]] with
@@ -106,7 +120,7 @@ given matrixRing[T: ClassTag, S <: Int](using
       Array.tabulate(s.value, s.value)((i, j) => -p(i, j))
     )
 
-given [T: ClassTag, S <: Int](using
+given [T: Eq: ClassTag: Tag, S <: Int](using
     s: ValueOf[S],
     ring: Ring[T]
 ): Conversion[T, Matrix[T, S]] with

@@ -6,7 +6,7 @@
       devShell = {
         shellHook = ''
           if [ ! -f .bsp/scala-cli.json ]; then
-            scala-cli setup-ide .
+            scala-cli setup-ide . -language:strictEquality
           fi
         '';
         packages = pkgs: with pkgs; [

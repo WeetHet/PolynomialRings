@@ -1,11 +1,11 @@
 [
   {
     "label": "Scala run",
-    "command": "scala-cli run .",
+    "command": "scala-cli run . -language:strictEquality",
     "tags": ["scala-main"]
   },
   {
     "label": "Scala test",
-    "command": "scala-cli test . -language:implicitConversions"
+    "command": "scala-cli test . -language:implicitConversions -language:strictEquality"
   }
 ]

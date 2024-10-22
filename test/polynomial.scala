@@ -26,8 +26,8 @@ implicit lazy val arbitraryIntPolynomial
   listOfN(monomialsList.size, arbInt.arbitrary)
     .map(
       _.zip(monomialsList)
-        .map((c, p) => Polynomial.const(c) * p)
-        .foldLeft(polynomialRing[Int, "x" | "y"].zero)(_ + _)
+        .map((c, p) => Polynomial.const[Int, "x" | "y"](c) * p)
+        .foldLeft(Ring[Poly].zero)(_ + _)
     )
 )
 

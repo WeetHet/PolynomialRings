@@ -8,12 +8,11 @@ import org.scalacheck.Prop._
 import org.scalacheck.Arbitrary
 import org.scalacheck.Gen.{listOfN}
 import polynomials.{Ring, CommutativeRing, Matrix, given}
-import scala.reflect.ClassTag
 import org.scalacheck.Gen
 
 implicit lazy val arbitrary3x3IntMatrix: Arbitrary[Matrix[Int, 3]] = Arbitrary(
-  listOfN(3, listOfN(3, Arbitrary.arbInt.arbitrary).map(_.toArray))
-    .map(list => Matrix[Int, 3](list.toArray))
+  listOfN(3, listOfN(3, Arbitrary.arbInt.arbitrary))
+    .map(list => Matrix[Int, 3](list))
 )
 
 class MatrixRingTest extends ScalaCheckSuite:

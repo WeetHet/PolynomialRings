@@ -1,5 +1,3 @@
-//> using dep dev.zio::izumi-reflect::2.3.10
-
 package polynomials
 
 import scala.language.implicitConversions
@@ -10,10 +8,10 @@ import scala.language.implicitConversions
   val x: Polynomial[Int, "x"] = variable[Int, "x"]("x")
 
   val mat = Matrix[Int, 3](
-    Array(
-      Array(1, 2, 3),
-      Array(4, 5, 6),
-      Array(7, 8, 9)
+    List(
+      List(1, 2, 3),
+      List(4, 5, 6),
+      List(7, 8, 9)
     )
   )
 

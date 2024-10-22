@@ -6,6 +6,6 @@
   },
   {
     "label": "Scala test",
-    "command": "scala-cli test . -language:implicitConversions -language:strictEquality"
+    "command": "scala-cli test . -language:strictEquality"
   }
 ]

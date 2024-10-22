@@ -1,7 +1,6 @@
 package polynomials
 
-import scala.reflect.{ClassTag, Typeable}
-import izumi.reflect.Tag
+import scala.collection.SeqView
 
 /** Represents a square matrix of size S x S with elements of type T.
   *
@@ -12,30 +11,14 @@ import izumi.reflect.Tag
   * @param repr
   *   The underlying 2D array representation of the matrix
   */
-class Matrix[T: Eq: ClassTag: Tag, S <: Int](
-    private val repr: Array[Array[T]]
+case class Matrix[T: Eq, S <: Int](
+    private val repr: List[List[T]]
 )(using s: ValueOf[S]):
-  val tagT = summon[Tag[T]]
   val size: Int = s.value
   assert(repr.size == size && repr.forall(_.size == size))
 
-  given tt: Typeable[Matrix[T, S]] with
-    def unapply(obj: Any): Option[obj.type & Matrix[T, S]] =
-      given CanEqual[Tag[?], Tag[?]] = CanEqual.derived
-      obj match
-        case mat: Matrix[_, _]
-            if mat.tagT == summon[Tag[T]] && mat.size == size =>
-          Some(mat.asInstanceOf[obj.type & Matrix[T, S]])
-        case _ => None
-
-  override def equals(that: Any): Boolean = that match
-    case tt(other: Matrix[T, S]) =>
-      size == other.size && repr.view
-        .zip(other.repr.view)
-        .forall(_.zip(_).forall(_ == _))
-    case _ => false
-
-  def apply(i: Int, j: Int): T = repr(i)(j)
+  def asRows: List[List[T]] = repr
+  def asCols: List[List[T]] = asRows.transpose
 
   override def toString(): String =
     val maxSize = (0 until size)
@@ -58,19 +41,19 @@ class Matrix[T: Eq: ClassTag: Tag, S <: Int](
       )
       .mkString("\n")
 
-given [T: Eq: ClassTag: Tag, S <: Int]: CanEqual[Matrix[T, S], Matrix[T, S]] =
+given [T: Eq, S <: Int]: CanEqual[Matrix[T, S], Matrix[T, S]] =
   CanEqual.derived
 
-given matrixRing[T: Eq: ClassTag: Tag, S <: Int](using
+given matrixRing[T: Eq, S <: Int](using
     s: ValueOf[S],
     ring: Ring[T]
 ): Ring[Matrix[T, S]] with
   lazy val zero: Matrix[T, S] = Matrix(
-    Array.fill(s.value, s.value)(ring.zero)
+    List.fill(s.value, s.value)(ring.zero)
   )
 
   lazy val unit: Matrix[T, S] = Matrix(
-    Array.tabulate(s.value, s.value)((i, j) =>
+    List.tabulate(s.value, s.value)((i, j) =>
       if (i == j) ring.unit else ring.zero
     )
   )
@@ -86,9 +69,7 @@ given matrixRing[T: Eq: ClassTag: Tag, S <: Int](using
       *   A new matrix resulting from the element-wise addition
       */
     def +(right: Matrix[T, S]): Matrix[T, S] = Matrix(
-      Array.tabulate(s.value, s.value)((i, j) =>
-        ring.+(left(i, j))(right(i, j))
-      )
+      left.asRows.zip(right.asRows).map(_.zip(_).map(ring.+(_)(_)))
     )
 
     /** Multiplies two matrices.
@@ -101,10 +82,13 @@ given matrixRing[T: Eq: ClassTag: Tag, S <: Int](using
       *   A new matrix resulting from the multiplication of left and right
       */
     def *(right: Matrix[T, S]): Matrix[T, S] = Matrix(
-      Array.tabulate(s.value, s.value)((i, j) =>
-        (0 until s.value)
-          .map(k => ring.*(left(i, k))(right(k, j)))
-          .reduce(ring.+(_)(_))
+      left.asRows.map(row =>
+        right.asCols.map(col =>
+          row
+            .zip(col)
+            .map { (a, b) => ring.*(a)(b) }
+            .foldLeft(ring.zero)(ring.+(_)(_))
+        )
       )
     )
 
@@ -117,15 +101,15 @@ given matrixRing[T: Eq: ClassTag: Tag, S <: Int](using
       *   A new matrix with all elements negated
       */
     def unary_- : Matrix[T, S] = Matrix(
-      Array.tabulate(s.value, s.value)((i, j) => -p(i, j))
+      p.asRows.map(_.map(ring.unary_-))
     )
 
-given [T: Eq: ClassTag: Tag, S <: Int](using
+given [T: Eq, S <: Int](using
     s: ValueOf[S],
     ring: Ring[T]
 ): Conversion[T, Matrix[T, S]] with
   def apply(x: T): Matrix[T, S] = Matrix(
-    Array.tabulate(s.value, s.value)((i, j) =>
+    List.tabulate(s.value, s.value)((i, j) =>
       if (i == j) (x * ring.unit) else ring.zero
     )
   )

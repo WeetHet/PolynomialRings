@@ -1,5 +1,7 @@
 package tests
 
+import scala.language.implicitConversions
+
 import munit.ScalaCheckSuite
 import org.scalacheck.Prop._
 import polynomials.{Polynomial, Ring, Matrix, given}
@@ -72,10 +74,10 @@ class PolyMatrixEvalTest extends munit.FunSuite:
     val x: Polynomial[Int, "x"] = Polynomial.variable("x")
 
     val mat = Matrix[Int, 3](
-      Array(
-        Array(1, 2, 3),
-        Array(4, 5, 6),
-        Array(7, 8, 9)
+      List(
+        List(1, 2, 3),
+        List(4, 5, 6),
+        List(7, 8, 9)
       )
     )
 
@@ -83,10 +85,10 @@ class PolyMatrixEvalTest extends munit.FunSuite:
     assertEquals(
       poly.evaluate(_ => mat),
       Matrix[Int, 3](
-        Array(
-          Array(33, 36, 42),
-          Array(66, 84, 96),
-          Array(102, 126, 153)
+        List(
+          List(33, 36, 42),
+          List(66, 84, 96),
+          List(102, 126, 153)
         )
       )
     )

@@ -14,10 +14,11 @@ case class Polynomial[C: CommutativeRing: Eq, V: Eq](
     val coeffString = coeff match
       case ring.unit => ""
       case c         => c.toString()
-    coeffString ++ monomial.view.map {
-      case (name, 1)   => name.toString()
-      case (name, exp) => f"${name}^${exp}"
-    }.mkString
+    coeffString ++ monomial.view
+      .map:
+        case (name, 1)   => name.toString()
+        case (name, exp) => f"${name}^${exp}"
+      .mkString
 
   override def toString(): String =
     repr.view.map(monomialToString).mkString(" + ") match
@@ -93,12 +94,11 @@ given polynomialRing[C: CommutativeRing: Eq, V: Eq]: Ring[Polynomial[C, V]] with
       val rightMap = right.repr
       val newRepr: Set[(List[(V, Int)], C)] =
         (leftMap.keySet ++ rightMap.keySet)
-          .map { monomial =>
+          .map: monomial =>
             val leftCoeff = leftMap.getOrElse(monomial, CommutativeRing[C].zero)
             val rightCoeff =
               rightMap.getOrElse(monomial, CommutativeRing[C].zero)
             (monomial, (CommutativeRing[C].+(leftCoeff)(rightCoeff)))
-          }
           .filter((_, coeff) => coeff != CommutativeRing[C].zero)
       Polynomial(newRepr.toMap)
 
@@ -108,18 +108,16 @@ given polynomialRing[C: CommutativeRing: Eq, V: Eq]: Ring[Polynomial[C, V]] with
       val elements = for
         (leftMonomial, leftCoeff) <- leftMap
         (rightMonomial, rightCoeff) <- rightMap
-      yield {
+      yield
         val newMonomial =
-          (leftMonomial ++ rightMonomial).foldRight(List[(V, Int)]()) {
+          (leftMonomial ++ rightMonomial).foldRight(List[(V, Int)]()):
             case ((curName, curP), (headName, headP) :: tail)
                 if curName == headName =>
               (curName, curP + headP) :: tail
             case (cur, acc) => cur :: acc
-          }
         Polynomial(
           Map(newMonomial -> CommutativeRing[C].*(leftCoeff)(rightCoeff))
         )
-      }
 
       elements.foldLeft(zero)(_ + _)
 

@@ -86,7 +86,7 @@ given matrixRing[T: Eq, S <: Int](using
         right.asCols.map(col =>
           row
             .zip(col)
-            .map { (a, b) => ring.*(a)(b) }
+            .map(ring.*(_)(_))
             .foldLeft(ring.zero)(ring.+(_)(_))
         )
       )

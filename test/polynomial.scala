@@ -3,7 +3,7 @@ package tests
 import scala.language.implicitConversions
 
 import munit.ScalaCheckSuite
-import org.scalacheck.Prop._
+import org.scalacheck.Prop.*
 import polynomials.{Polynomial, Ring, Matrix, given}
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.arbInt

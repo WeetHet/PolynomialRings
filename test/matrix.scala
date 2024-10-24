@@ -4,7 +4,7 @@
 package tests
 
 import munit.ScalaCheckSuite
-import org.scalacheck.Prop._
+import org.scalacheck.Prop.*
 import org.scalacheck.Arbitrary
 import org.scalacheck.Gen.{listOfN}
 import polynomials.{Ring, CommutativeRing, Matrix, given}
